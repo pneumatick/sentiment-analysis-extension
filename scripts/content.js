@@ -56,12 +56,25 @@ async function main() {
           // Get the new timeline elements
           const newTLNodes = mutation.addedNodes;
 
-          // Output the tweet text
+          // Output the tweet text and give a border
           newTLNodes.forEach(node => {
+            // Check if the node is a tweet
+            const tweet = node.querySelector('[data-testid="tweet"]');
+            if (!tweet) {
+              console.log("Non-tweet element updated");
+              return;
+            }
+
+            // Output the tweet text to console
             const text = getTweetText(node);
             if (text) {
               console.log("Tweet text:", text);
             }
+
+            // Create a thin green border around each tweet
+            tweet.style.border = "1px solid green";
+            tweet.style.padding = "5px";
+            tweet.style.margin = "5px 0";
           });
         }
       });

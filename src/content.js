@@ -92,18 +92,18 @@ async function main() {
               return;
             }
 
-            // Output the tweet text to console
+            // Get the text from the tweet
             const text = getTweetText(node);
             if (text) {
               console.log("Tweet text:", text);
-              let classification = sendClassifyMessage(text);
-              console.log("Classification:", classification);
-            }
+              // Send the text to the background script for classification
+              sendClassifyMessage(text);
 
-            // Create a thin green border around each tweet
-            tweet.style.border = "1px solid green";
-            tweet.style.padding = "5px";
-            tweet.style.margin = "5px 0";
+              // Create a thin green border around each tweet
+              tweet.style.border = "1px solid green";
+              tweet.style.padding = "5px";
+              tweet.style.margin = "5px 0";
+            }
           });
         }
       });
@@ -128,15 +128,15 @@ async function main() {
       const text = getTweetText(tweet);
       if (text) {
         console.log("Tweet text:", text);
-      }
       
-      // Send the text to the background script for classification
-      sendClassifyMessage(text);
+        // Send the text to the background script for classification
+        sendClassifyMessage(text);
 
-      // Create a thin green border around each tweet
-      tweet.style.border = "1px solid green";
-      tweet.style.padding = "5px";
-      tweet.style.margin = "5px 0";
+        // Create a thin green border around each tweet
+        tweet.style.border = "1px solid green";
+        tweet.style.padding = "5px";
+        tweet.style.margin = "5px 0";
+      }
     });
   });
 }

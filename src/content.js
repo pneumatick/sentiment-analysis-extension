@@ -66,16 +66,9 @@ function sendClassifyMessage(text) {
     text: text
   };
 
-  try {
-    chrome.runtime.sendMessage(message, (response) => {
-      console.log("Received user data:", response);
-      return JSON.stringify(response, null, 2);
-    });
-  }
-  catch (error) {
-    console.error("Error sending message:", error);
-    return null;
-  }
+  chrome.runtime.sendMessage(message, (response) => {
+    console.log('Received classification response:', response);
+  });
 }
 
 async function main() {
@@ -128,16 +121,22 @@ async function main() {
   await waitForFirstTweets().then(tweets => {
     console.log("Tweets collected:", tweets);
 
-    // Get the tweet text of the first tweet (change later)
-    const text = getTweetText(tweets[0]);
-    if (text) {
-      console.log("Tweet text:", text);
-    }
 
     // Create a thin green border around each tweet
     tweets.forEach((tweet) => {
+      // Get the text from each tweet
+      const text = getTweetText(tweet);
+      if (text) {
+        console.log("Tweet text:", text);
+      }
+      
+      // Send the text to the background script for classification
+      sendClassifyMessage(text);
+
+      // Create a thin green border around each tweet
       tweet.style.border = "1px solid green";
       tweet.style.padding = "5px";
+      tweet.style.margin = "5px 0";
     });
   });
 }

@@ -59,6 +59,25 @@ function getTweetText(tweetElem) {
   return textDiv.textContent;
 }
 
+// Sent a classify message to the background script
+function sendClassifyMessage(text) {
+  const message = {
+    action: 'classify',
+    text: text
+  };
+
+  try {
+    chrome.runtime.sendMessage(message, (response) => {
+      console.log("Received user data:", response);
+      return JSON.stringify(response, null, 2);
+    });
+  }
+  catch (error) {
+    console.error("Error sending message:", error);
+    return null;
+  }
+}
+
 async function main() {
   // Wait for the timeline to load
   await waitForTimeline().then(timeline => {
@@ -84,6 +103,8 @@ async function main() {
             const text = getTweetText(node);
             if (text) {
               console.log("Tweet text:", text);
+              let classification = sendClassifyMessage(text);
+              console.log("Classification:", classification);
             }
 
             // Create a thin green border around each tweet
@@ -114,10 +135,10 @@ async function main() {
     }
 
     // Create a thin green border around each tweet
-    for (tweet of tweets) {
+    tweets.forEach((tweet) => {
       tweet.style.border = "1px solid green";
       tweet.style.padding = "5px";
-    }
+    });
   });
 }
 

@@ -1,5 +1,5 @@
 {
-  "name": "extension",
+  "name": "x-sentiment",
   "version": "0.0.1",
   "description": "Transformers.js | Sample browser extension",
   "scripts": {

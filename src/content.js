@@ -1,3 +1,15 @@
+// content.js - the content scripts which is run in the context of web pages, and has access
+// to the DOM and other web APIs.
+
+// Example usage:
+// const message = {
+//     action: 'classify',
+//     text: 'text to classify',
+// }
+// chrome.runtime.sendMessage(message, (response) => {
+//     console.log('received user data', response)
+// });
+
 async function wait(time) {
   return new Promise(resolve => setTimeout(resolve, time));
 }
@@ -47,6 +59,45 @@ function getTweetText(tweetElem) {
   return textDiv.textContent;
 }
 
+// Classify the tweet
+function classifyTweet(tweet) {
+  // Get the text from the tweet
+  const text = getTweetText(tweet);
+  if (!text) {
+    console.log("Tweet contains no text");
+    return;
+  }
+
+  // Send the text to the background script for classification
+  const message = {
+    action: 'classify',
+    text: text
+  };
+
+  chrome.runtime.sendMessage(message, (response) => {
+    console.log('Received classification response:', response);
+
+    // Create a border around the tweet depending on the classification
+    let classification = response[0];
+    if (classification.label === "POSITIVE") {
+      tweet.style.border = "1px solid green";
+    }
+    else if (classification.label === "NEGATIVE") {
+      tweet.style.border = "1px solid red";
+    }
+    tweet.style.padding = "5px";
+    tweet.style.margin = "5px 0";
+
+    // Add the score to the tweet
+    let scoreDiv = document.createElement("div");
+    scoreDiv.textContent = `Score: ${classification.score}`;
+    scoreDiv.style.fontSize = "12px";
+    scoreDiv.style.color = "gray";
+    scoreDiv.style.marginTop = "5px";
+    tweet.appendChild(scoreDiv);
+  });
+}
+
 async function main() {
   // Wait for the timeline to load
   await waitForTimeline().then(timeline => {
@@ -68,16 +119,8 @@ async function main() {
               return;
             }
 
-            // Output the tweet text to console
-            const text = getTweetText(node);
-            if (text) {
-              console.log("Tweet text:", text);
-            }
-
-            // Create a thin green border around each tweet
-            tweet.style.border = "1px solid green";
-            tweet.style.padding = "5px";
-            tweet.style.margin = "5px 0";
+            // Classify the tweet
+            classifyTweet(tweet);
           });
         }
       });
@@ -95,17 +138,10 @@ async function main() {
   await waitForFirstTweets().then(tweets => {
     console.log("Tweets collected:", tweets);
 
-    // Get the tweet text of the first tweet (change later)
-    const text = getTweetText(tweets[0]);
-    if (text) {
-      console.log("Tweet text:", text);
-    }
-
-    // Create a thin green border around each tweet
-    for (tweet of tweets) {
-      tweet.style.border = "1px solid green";
-      tweet.style.padding = "5px";
-    }
+    // Classify the tweets
+    tweets.forEach((tweet) => {
+      classifyTweet(tweet);
+    });
   });
 }
 

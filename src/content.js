@@ -59,8 +59,16 @@ function getTweetText(tweetElem) {
   return textDiv.textContent;
 }
 
-// Sent a classify message to the background script
-function sendClassifyMessage(text) {
+// Classify the tweet
+function classifyTweet(tweet) {
+  // Get the text from the tweet
+  const text = getTweetText(tweet);
+  if (!text) {
+    console.log("Tweet contains no text");
+    return;
+  }
+
+  // Send the text to the background script for classification
   const message = {
     action: 'classify',
     text: text
@@ -68,6 +76,25 @@ function sendClassifyMessage(text) {
 
   chrome.runtime.sendMessage(message, (response) => {
     console.log('Received classification response:', response);
+
+    // Create a border around the tweet depending on the classification
+    let classification = response[0];
+    if (classification.label === "POSITIVE") {
+      tweet.style.border = "1px solid green";
+    }
+    else if (classification.label === "NEGATIVE") {
+      tweet.style.border = "1px solid red";
+    }
+    tweet.style.padding = "5px";
+    tweet.style.margin = "5px 0";
+
+    // Add the score to the tweet
+    let scoreDiv = document.createElement("div");
+    scoreDiv.textContent = `Score: ${classification.score}`;
+    scoreDiv.style.fontSize = "12px";
+    scoreDiv.style.color = "gray";
+    scoreDiv.style.marginTop = "5px";
+    tweet.appendChild(scoreDiv);
   });
 }
 
@@ -92,18 +119,8 @@ async function main() {
               return;
             }
 
-            // Get the text from the tweet
-            const text = getTweetText(node);
-            if (text) {
-              console.log("Tweet text:", text);
-              // Send the text to the background script for classification
-              sendClassifyMessage(text);
-
-              // Create a thin green border around each tweet
-              tweet.style.border = "1px solid green";
-              tweet.style.padding = "5px";
-              tweet.style.margin = "5px 0";
-            }
+            // Classify the tweet
+            classifyTweet(tweet);
           });
         }
       });
@@ -121,22 +138,9 @@ async function main() {
   await waitForFirstTweets().then(tweets => {
     console.log("Tweets collected:", tweets);
 
-
-    // Create a thin green border around each tweet
+    // Classify the tweets
     tweets.forEach((tweet) => {
-      // Get the text from each tweet
-      const text = getTweetText(tweet);
-      if (text) {
-        console.log("Tweet text:", text);
-      
-        // Send the text to the background script for classification
-        sendClassifyMessage(text);
-
-        // Create a thin green border around each tweet
-        tweet.style.border = "1px solid green";
-        tweet.style.padding = "5px";
-        tweet.style.margin = "5px 0";
-      }
+      classifyTweet(tweet);
     });
   });
 }

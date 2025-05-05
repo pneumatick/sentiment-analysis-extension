@@ -5,6 +5,7 @@ import { pipeline } from '@huggingface/transformers';
 class PipelineSingleton {
     static task = 'text-classification';
     static model = 'Xenova/distilbert-base-uncased-finetuned-sst-2-english';
+    //static model = 'cardiffnlp/twitter-roberta-base-sentiment-latest';
     static instance = null;
 
     static async getInstance(progress_callback = null) {
@@ -55,18 +56,18 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         args: [result],               // The arguments to pass to the function
         function: (result) => {       // The function to run
             // NOTE: This function is run in the context of the web page, meaning that `document` is available.
-            console.log('result', result)
-            console.log('document', document)
+            console.log('result', result);
+            console.log('document', document);
         },
     });
 });
 //////////////////////////////////////////////////////////////
 
 ////////////////////// 2. Message Events /////////////////////
-// 
+//
 // Listen for messages from the UI, process it, and send the result back.
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('sender', sender)
+    console.log('sender', sender);
     if (message.action !== 'classify') return; // Ignore messages that are not meant for classification.
 
     // Run model prediction asynchronously

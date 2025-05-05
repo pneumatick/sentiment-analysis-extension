@@ -47,12 +47,7 @@ async function waitForTimeline() {
 function getTweetText(tweetElem) {
   let textDiv = tweetElem.querySelector('[data-testid="tweetText"]');
 
-  if (!textDiv) {
-    console.log("Non-tweet element found");
-    return null;
-  }
-  else if (textDiv.textContent === "") {
-    console.log("Tweet contains no text");
+  if (!textDiv || textDiv.textContent === "") {
     return null;
   }
 
@@ -63,6 +58,8 @@ function getTweetText(tweetElem) {
 function classifyTweet(tweet) {
   // Get the text from the tweet
   const text = getTweetText(tweet);
+
+  // Handle tweets with no text (presumably image-only tweets)
   if (!text) {
     console.log("Tweet contains no text");
     return;
@@ -75,7 +72,11 @@ function classifyTweet(tweet) {
   };
 
   chrome.runtime.sendMessage(message, (response) => {
-    console.log('Received classification response:', response);
+    if (!response) {
+        console.log(`Classification response: ${response}\nReclassifying...`);
+        classifyTweet(tweet);
+        return;
+    }
 
     // Create a border around the tweet depending on the classification
     let classification = response[0];
@@ -101,7 +102,7 @@ function classifyTweet(tweet) {
 async function main() {
   // Wait for the timeline to load
   await waitForTimeline().then(timeline => {
-    console.log("Timeline loaded:", timeline);
+    console.log("Timeline loaded");
 
     // Add a MutationObserver to watch for new tweets
     const observer = new MutationObserver(mutations => {
@@ -115,7 +116,6 @@ async function main() {
             // Check if the node is a tweet
             const tweet = node.querySelector('[data-testid="tweet"]');
             if (!tweet) {
-              console.log("Non-tweet element updated");
               return;
             }
 
@@ -136,9 +136,6 @@ async function main() {
   // Handle the first batch of tweets when the timeline loads
   // (the MutationObserver will handle new tweets)
   await waitForFirstTweets().then(tweets => {
-    console.log("Tweets collected:", tweets);
-
-    // Classify the tweets
     tweets.forEach((tweet) => {
       classifyTweet(tweet);
     });
